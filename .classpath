@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="lib" path="libs/core.jar"/>
+	<classpathentry kind="lib" path="libs/miglayout.jar"/>
+	<classpathentry kind="lib" path="libs/geoapi-2.3-M1.jar"/>
+	<classpathentry kind="lib" path="libs/commons-pool-1.5.4.jar"/>
+	<classpathentry kind="lib" path="libs/geoapi-pending-2.3-M1.jar"/>
+	<classpathentry kind="lib" path="libs/gt-api-2.7-M3.jar"/>
+	<classpathentry kind="lib" path="libs/gt-cql-2.7-M3.jar"/>
+	<classpathentry kind="lib" path="libs/gt-data-2.7-M3.jar"/>
+	<classpathentry kind="lib" path="libs/gt-epsg-hsql-2.7-M3.jar"/>
+	<classpathentry kind="lib" path="libs/gt-main-2.7-M3.jar"/>
+	<classpathentry kind="lib" path="libs/gt-metadata-2.7-M3.jar"/>
+	<classpathentry kind="lib" path="libs/gt-referencing-2.7-M3.jar"/>
+	<classpathentry kind="lib" path="libs/gt-shapefile-2.7-M3.jar"/>
+	<classpathentry kind="lib" path="libs/hsqldb-1.8.0.7.jar"/>
+	<classpathentry kind="lib" path="libs/jdom-1.0.jar"/>
+	<classpathentry kind="lib" path="libs/MapThing.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
