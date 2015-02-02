@@ -1,4 +1,4 @@
-package steam.views;
+package views;
 
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
@@ -15,8 +15,8 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 
+import cores.STEAMParams;
 import net.miginfocom.swing.MigLayout;
-import steam.cores.STEAMParams;
 
 public class MainForm extends JFrame {
 
@@ -32,16 +32,16 @@ public class MainForm extends JFrame {
     private JPanel jVizControlPane;
     private JPanel jPlayPane;
 
-    // buttons
-    private JButton btnPlay;
-    private JButton btnSelectShpDir;
-    private JButton btnSelectFlowDir;
-
     // text fields
     private JTextField txtWidth;
     private JTextField txtHeight;
     private JTextField txtShpDir;
     private JTextField txtFlowDir;
+    private JTextField txtStayDir;
+    private JTextField txtMinLat;
+    private JTextField txtMaxLat;
+    private JTextField txtMinLon;
+    private JTextField txtMaxLon;
 
     public static void main(String[] args) {
 	EventQueue.invokeLater(new Runnable() {
@@ -128,7 +128,7 @@ public class MainForm extends JFrame {
     private JPanel getPlayPane() {
 	jPlayPane = new JPanel();
 
-	btnPlay = new JButton("Play");
+	JButton btnPlay = new JButton("Play");
 	btnPlay.addActionListener(new ActionListener() {
 	    @Override
 	    public void actionPerformed(ActionEvent e) {
@@ -136,6 +136,11 @@ public class MainForm extends JFrame {
 		params.setWidth(Integer.valueOf(txtWidth.getText()));
 		params.setHeight(Integer.valueOf(txtHeight.getText()));
 		params.setShpDir(txtShpDir.getText());
+		params.setFlowDir(txtFlowDir.getText());
+		params.setMinLat(Float.valueOf(txtMinLat.getText()));
+		params.setMaxLat(Float.valueOf(txtMaxLat.getText()));
+		params.setMinLon(Float.valueOf(txtMinLon.getText()));
+		params.setMaxLon(Float.valueOf(txtMaxLon.getText()));
 		
 		VizForm frmViz = new VizForm(params);
 		frmViz.setVisible(true);
@@ -167,7 +172,7 @@ public class MainForm extends JFrame {
 	txtShpDir = new JTextField();
 	jBasicControlPane.add(txtShpDir, "width :200:, pushx, growx");
 
-	btnSelectShpDir = new JButton("Select");
+	JButton btnSelectShpDir = new JButton("Select");
 	btnSelectShpDir.addActionListener(new ActionListener() {   
 	    @Override
 	    public void actionPerformed(ActionEvent e) {
@@ -186,7 +191,7 @@ public class MainForm extends JFrame {
 	txtFlowDir = new JTextField();
 	jBasicControlPane.add(txtFlowDir, "width :200:, pushx, growx");
 
-	btnSelectFlowDir = new JButton("Select");
+	JButton btnSelectFlowDir = new JButton("Select");
 	btnSelectFlowDir.addActionListener(new ActionListener() {   
 	    @Override
 	    public void actionPerformed(ActionEvent e) {
@@ -198,12 +203,55 @@ public class MainForm extends JFrame {
 	    }
 	});
 	jBasicControlPane.add(btnSelectFlowDir, "wrap");
+	
+	JLabel lblStayDir = new JLabel("Stay Data Directory:");
+	jBasicControlPane.add(lblStayDir, "split 3, sg a");
+
+	txtStayDir = new JTextField();
+	jBasicControlPane.add(txtStayDir, "width :200:, pushx, growx");
+
+	JButton btnSelectStayDir = new JButton("Select");
+	btnSelectStayDir.addActionListener(new ActionListener() {   
+	    @Override
+	    public void actionPerformed(ActionEvent e) {
+		JFileChooser chooser = new JFileChooser();
+		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+		    txtStayDir.setText(chooser.getSelectedFile().toString());
+		}
+	    }
+	});
+	jBasicControlPane.add(btnSelectStayDir, "wrap");
 
 	return jBasicControlPane;
     }
 
     private JPanel getVizControlPane() {
-	jVizControlPane = new JPanel();
+	jVizControlPane = new JPanel(new MigLayout("debug", "", ""));
+
+	JLabel lblMinLat = new JLabel("MinLat:");
+	jVizControlPane.add(lblMinLat, "split 8");
+
+	txtMinLat = new JTextField();
+	jVizControlPane.add(txtMinLat, "width :60:");
+
+	JLabel lblMaxLat = new JLabel("MaxLat:");
+	jVizControlPane.add(lblMaxLat);
+
+	txtMaxLat = new JTextField();
+	jVizControlPane.add(txtMaxLat, "width :60:");
+	
+	JLabel lblMinLon = new JLabel("MinLon:");
+	jVizControlPane.add(lblMinLon);
+
+	txtMinLon = new JTextField();
+	jVizControlPane.add(txtMinLon, "width :60:");
+
+	JLabel lblMaxLan = new JLabel("MaxLon:");
+	jVizControlPane.add(lblMaxLan);
+
+	txtMaxLon = new JTextField();
+	jVizControlPane.add(txtMaxLon, "width :60:");
 
 	return jVizControlPane;
     }

@@ -1,12 +1,12 @@
-package steam.views;
+package views;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
+import cores.STEAM;
+import cores.STEAMParams;
 import net.miginfocom.swing.MigLayout;
 import processing.core.PApplet;
-import steam.cores.STEAM;
-import steam.cores.STEAMParams;
 
 public class VizForm extends JFrame {
 
