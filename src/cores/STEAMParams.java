@@ -1,5 +1,7 @@
 package cores;
 
+import java.util.Map;
+
 public class STEAMParams {
     
     private int width;
@@ -7,12 +9,24 @@ public class STEAMParams {
 
     private float minLat;
     private float maxLat;
-    private float minLon;
-    private float maxLon;
+    private float minLng;
+    private float maxLng;
 
     private String shpDir;
     private String flowDir;
     private String stayDir;
+    
+    private float speed;
+    private float flowDiameter;
+    
+    private int flowColorRed;
+    private int flowColorGreen;
+    private int flowColorBlue;
+
+    private int maxFlowDotNum;
+    
+    private Map<Integer, Integer> flowClasses;
+    private int[] stayClasses;
     
     public STEAMParams() {
 	
@@ -50,20 +64,20 @@ public class STEAMParams {
         this.maxLat = maxLat;
     }
 
-    public float getMinLon() {
-        return minLon;
+    public float getMinLng() {
+        return minLng;
     }
 
-    public void setMinLon(float minLon) {
-        this.minLon = minLon;
+    public void setMinLng(float minLng) {
+        this.minLng = minLng;
     }
 
-    public float getMaxLon() {
-        return maxLon;
+    public float getMaxLng() {
+        return maxLng;
     }
 
-    public void setMaxLon(float maxLon) {
-        this.maxLon = maxLon;
+    public void setMaxLng(float maxLng) {
+        this.maxLng = maxLng;
     }
 
     public String getShpDir() {
@@ -88,6 +102,70 @@ public class STEAMParams {
 
     public void setStayDir(String stayDir) {
         this.stayDir = stayDir;
+    }
+
+    public float getSpeed() {
+        return speed;
+    }
+
+    public void setSpeed(float speed) {
+        this.speed = speed;
+    }
+    
+    public float getFlowDiameter() {
+        return flowDiameter;
+    }
+
+    public void setFlowDiameter(float flowDiameter) {
+        this.flowDiameter = flowDiameter;
+    }
+
+    public int getFlowColorRed() {
+        return flowColorRed;
+    }
+
+    public void setFlowColorRed(int flowColorRed) {
+        this.flowColorRed = flowColorRed;
+    }
+
+    public int getFlowColorGreen() {
+        return flowColorGreen;
+    }
+
+    public void setFlowColorGreen(int flowColorGreen) {
+        this.flowColorGreen = flowColorGreen;
+    }
+
+    public int getFlowColorBlue() {
+        return flowColorBlue;
+    }
+
+    public void setFlowColorBlue(int flowColorBlue) {
+        this.flowColorBlue = flowColorBlue;
+    }
+
+    public int getMaxFlowDotNum() {
+        return maxFlowDotNum;
+    }
+
+    public void setMaxFlowDotNum(int maxFlowDotNum) {
+        this.maxFlowDotNum = maxFlowDotNum;
+    }
+
+    public Map<Integer, Integer> getFlowClasses() {
+        return flowClasses;
+    }
+
+    public void setFlowClasses(Map<Integer, Integer> flowClasses) {
+        this.flowClasses = flowClasses;
+    }
+
+    public int[] getStayClasses() {
+        return stayClasses;
+    }
+
+    public void setStayClasses(int[] stayClasses) {
+        this.stayClasses = stayClasses;
     }
 
 }

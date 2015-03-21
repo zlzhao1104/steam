@@ -3,6 +3,8 @@ package views;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -15,6 +17,8 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 
+import processing.core.PApplet;
+import cores.STEAM;
 import cores.STEAMParams;
 import net.miginfocom.swing.MigLayout;
 
@@ -40,8 +44,13 @@ public class MainForm extends JFrame {
     private JTextField txtStayDir;
     private JTextField txtMinLat;
     private JTextField txtMaxLat;
-    private JTextField txtMinLon;
-    private JTextField txtMaxLon;
+    private JTextField txtMinLng;
+    private JTextField txtMaxLng;
+    private JTextField txtSpeed;
+    private JTextField txtFlowDiameter;
+    private JTextField txtFlowRGB;
+    private JTextField txtFlowClasses;
+    private JTextField txtStayClasses;
 
     public static void main(String[] args) {
 	EventQueue.invokeLater(new Runnable() {
@@ -132,18 +141,63 @@ public class MainForm extends JFrame {
 	btnPlay.addActionListener(new ActionListener() {
 	    @Override
 	    public void actionPerformed(ActionEvent e) {
+		getDebugValues();
+		
 		STEAMParams params = new STEAMParams();
 		params.setWidth(Integer.valueOf(txtWidth.getText()));
 		params.setHeight(Integer.valueOf(txtHeight.getText()));
 		params.setShpDir(txtShpDir.getText());
 		params.setFlowDir(txtFlowDir.getText());
+		params.setStayDir(txtStayDir.getText());
+		params.setSpeed(Float.valueOf(txtSpeed.getText()));
+		params.setFlowDiameter(Float.valueOf(txtFlowDiameter.getText()));
 		params.setMinLat(Float.valueOf(txtMinLat.getText()));
 		params.setMaxLat(Float.valueOf(txtMaxLat.getText()));
-		params.setMinLon(Float.valueOf(txtMinLon.getText()));
-		params.setMaxLon(Float.valueOf(txtMaxLon.getText()));
+		params.setMinLng(Float.valueOf(txtMinLng.getText()));
+		params.setMaxLng(Float.valueOf(txtMaxLng.getText()));
+		
+		String[] flowRGBArr = txtFlowRGB.getText().split(",");
+		params.setFlowColorRed(Integer.valueOf(flowRGBArr[0]));
+		params.setFlowColorGreen(Integer.valueOf(flowRGBArr[1]));
+		params.setFlowColorBlue(Integer.valueOf(flowRGBArr[2]));
+		
+		Map<Integer, Integer> flowClasses = new LinkedHashMap<>();
+		String[] flowClassesArr = txtFlowClasses.getText().split(";");
+		for (int i = 0; i < flowClassesArr.length - 1; i++) {
+		    int volume = Integer.valueOf(flowClassesArr[i].split(":")[0]);
+		    int dotNum = Integer.valueOf(flowClassesArr[i].split(":")[1]);
+		    flowClasses.put(volume, dotNum);
+		}
+		params.setFlowClasses(flowClasses);
+		params.setMaxFlowDotNum(Integer.valueOf(flowClassesArr[flowClassesArr.length - 1]));
+		
+		String[] stayClassesArr = txtStayClasses.getText().split(",");
+		int stayArrayLen = stayClassesArr.length;
+		int[] stayClasses = new int[stayArrayLen];
+		for (int i = 0; i < stayArrayLen; i++) {
+		    stayClasses[i] = Integer.parseInt(stayClassesArr[i]);
+		}
+		params.setStayClasses(stayClasses);
 		
 		VizForm frmViz = new VizForm(params);
 		frmViz.setVisible(true);
+	    }
+
+	    private void getDebugValues() {
+		txtWidth.setText("1400");
+		txtHeight.setText("800");
+		txtShpDir.setText("/Users/ziliangzhao/Workspace/Eclipse/STEAM/data/shapefiles");
+		txtFlowDir.setText("/Users/ziliangzhao/Workspace/Eclipse/STEAM/data/flows");
+		txtStayDir.setText("/Users/ziliangzhao/Workspace/Eclipse/STEAM/data/stays");
+		txtMinLat.setText("22.446381");
+		txtMaxLat.setText("22.850963");
+		txtMinLng.setText("113.764798");
+		txtMaxLng.setText("114.628047");
+		txtSpeed.setText("200");
+		txtFlowRGB.setText("255,0,0");
+		txtFlowDiameter.setText("0.6");
+		txtFlowClasses.setText("100:1;200:2;300:3;400:4;500:5;600:6;700:7;800:8;900:9;1000:10;1100:11;1200:12;1300:13;14");
+		txtStayClasses.setText("2000,4000,6000,8000,10000,12000,14000,16000,18000");
 	    }
 	});
 	jPlayPane.add(btnPlay);
@@ -152,7 +206,7 @@ public class MainForm extends JFrame {
     }
 
     private JPanel getBasicControlPane() {
-	jBasicControlPane = new JPanel(new MigLayout("debug", "", ""));
+	jBasicControlPane = new JPanel(new MigLayout("debug", "[][][][][][][][]", "[][][][]"));
 
 	JLabel lblWidth = new JLabel("Width:");
 	jBasicControlPane.add(lblWidth, "split 4");
@@ -227,31 +281,61 @@ public class MainForm extends JFrame {
     }
 
     private JPanel getVizControlPane() {
-	jVizControlPane = new JPanel(new MigLayout("debug", "", ""));
-
+	jVizControlPane = new JPanel(new MigLayout("debug", "[][][][][][][][]", ""));
+	
 	JLabel lblMinLat = new JLabel("MinLat:");
 	jVizControlPane.add(lblMinLat, "split 8");
 
 	txtMinLat = new JTextField();
-	jVizControlPane.add(txtMinLat, "width :60:");
+	jVizControlPane.add(txtMinLat, "width :100:");
 
 	JLabel lblMaxLat = new JLabel("MaxLat:");
 	jVizControlPane.add(lblMaxLat);
 
 	txtMaxLat = new JTextField();
-	jVizControlPane.add(txtMaxLat, "width :60:");
+	jVizControlPane.add(txtMaxLat, "width :100:");
 	
-	JLabel lblMinLon = new JLabel("MinLon:");
-	jVizControlPane.add(lblMinLon);
+	JLabel lblMinLng = new JLabel("MinLng:");
+	jVizControlPane.add(lblMinLng);
 
-	txtMinLon = new JTextField();
-	jVizControlPane.add(txtMinLon, "width :60:");
+	txtMinLng = new JTextField();
+	jVizControlPane.add(txtMinLng, "width :100:");
 
-	JLabel lblMaxLan = new JLabel("MaxLon:");
-	jVizControlPane.add(lblMaxLan);
+	JLabel lblMaxLng = new JLabel("MaxLng:");
+	jVizControlPane.add(lblMaxLng);
 
-	txtMaxLon = new JTextField();
-	jVizControlPane.add(txtMaxLon, "width :60:");
+	txtMaxLng = new JTextField();
+	jVizControlPane.add(txtMaxLng, "width :100:, wrap");
+	
+	JLabel lblSpeed = new JLabel("Speed:");
+	jVizControlPane.add(lblSpeed, "split");
+	
+	txtSpeed = new JTextField();
+	jVizControlPane.add(txtSpeed, "width :100:");
+	
+	JLabel lblFlowDiameter = new JLabel("Flow Diameter:");
+	jVizControlPane.add(lblFlowDiameter);
+	
+	txtFlowDiameter = new JTextField();
+	jVizControlPane.add(txtFlowDiameter, "width :100:");
+	
+	JLabel lblFlowRGB = new JLabel("Flow RGB:");
+	jVizControlPane.add(lblFlowRGB);
+	
+	txtFlowRGB = new JTextField();
+	jVizControlPane.add(txtFlowRGB, "width :100:, wrap");
+	
+	JLabel lblFlowClasses = new JLabel("Flow classes:");
+	jVizControlPane.add(lblFlowClasses, "left sg1, split");
+	
+	txtFlowClasses = new JTextField();
+	jVizControlPane.add(txtFlowClasses, "pushx, growx, wrap");
+	
+	JLabel lblStayClasses = new JLabel("Stay classes:");
+	jVizControlPane.add(lblStayClasses, "left sg1, split");
+	
+	txtStayClasses = new JTextField();
+	jVizControlPane.add(txtStayClasses, "pushx, growx, wrap");
 
 	return jVizControlPane;
     }

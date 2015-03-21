@@ -1,5 +1,8 @@
 package views;
 
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
@@ -14,8 +17,6 @@ public class VizForm extends JFrame {
 
     private STEAMParams params;
 
-    private JPanel jVizPane;
-
     public VizForm(STEAMParams params) {
 	this.params = params;
 
@@ -23,21 +24,20 @@ public class VizForm extends JFrame {
     }
 
     private void initialize() {
-	this.setSize(params.getWidth(), params.getHeight());
 	this.setResizable(false);
 	this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-	this.setContentPane(getJContentPane());
-    }
-
-    private JPanel getJContentPane() {
-	jVizPane = new JPanel();
-	jVizPane.setLayout(new MigLayout("debug", "[]", "[]"));
+	this.setLayout(new BorderLayout());
 	
 	PApplet sketch = new STEAM(params);
-	jVizPane.add(sketch, "span, grow x, grow y, push x, push y");
-	sketch.init();
-
-	return jVizPane;
+	sketch.resize(params.getWidth(), params.getHeight());
+	sketch.setPreferredSize(new Dimension(params.getWidth(), params.getHeight()));
+	sketch.setMinimumSize(new Dimension(params.getWidth(), params.getHeight()));
+	
+        add(sketch, BorderLayout.CENTER);
+        
+        this.pack();
+        
+        sketch.init();
     }
 
 }
