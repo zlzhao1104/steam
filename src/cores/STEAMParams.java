@@ -1,83 +1,46 @@
 package cores;
 
-import java.util.Map;
+import java.io.Serializable;
 
-public class STEAMParams {
+public class STEAMParams implements Serializable {
     
-    private int width;
-    private int height;
-
-    private float minLat;
-    private float maxLat;
-    private float minLng;
-    private float maxLng;
+    private static final long serialVersionUID = 1L;
+    
+    private String width;
+    private String height;
 
     private String shpDir;
-    private String flowDir;
-    private String stayDir;
+    private String flowPath;
     
-    private float speed;
-    private float flowDiameter;
-    
-    private int flowColorRed;
-    private int flowColorGreen;
-    private int flowColorBlue;
+    private String minLat;
+    private String maxLat;
+    private String minLng;
+    private String maxLng;
 
-    private int maxFlowDotNum;
+    private String flowSpeed;
+    private String flowDiameter;
+    private String flowColorRGB;
     
-    private Map<Integer, Integer> flowClasses;
-    private int[] stayClasses;
+    private String flowClasses;
     
     public STEAMParams() {
 	
     }
-    
-    public int getWidth() {
+
+    public String getWidth() {
         return width;
     }
 
-    public void setWidth(int width) {
+    public void setWidth(String width) {
         this.width = width;
     }
 
-    public int getHeight() {
+    public String getHeight() {
         return height;
     }
 
-    public void setHeight(int height) {
+    public void setHeight(String height) {
         this.height = height;
-    }
-    
-    public float getMinLat() {
-        return minLat;
-    }
-
-    public void setMinLat(float minLat) {
-        this.minLat = minLat;
-    }
-
-    public float getMaxLat() {
-        return maxLat;
-    }
-
-    public void setMaxLat(float maxLat) {
-        this.maxLat = maxLat;
-    }
-
-    public float getMinLng() {
-        return minLng;
-    }
-
-    public void setMinLng(float minLng) {
-        this.minLng = minLng;
-    }
-
-    public float getMaxLng() {
-        return maxLng;
-    }
-
-    public void setMaxLng(float maxLng) {
-        this.maxLng = maxLng;
     }
 
     public String getShpDir() {
@@ -88,84 +51,76 @@ public class STEAMParams {
         this.shpDir = shpDir;
     }
 
-    public String getFlowDir() {
-        return flowDir;
+    public String getFlowPath() {
+        return flowPath;
     }
 
-    public void setFlowDir(String flowDir) {
-        this.flowDir = flowDir;
+    public void setFlowPath(String flowPath) {
+        this.flowPath = flowPath;
     }
 
-    public String getStayDir() {
-        return stayDir;
+    public String getMinLat() {
+        return minLat;
     }
 
-    public void setStayDir(String stayDir) {
-        this.stayDir = stayDir;
+    public void setMinLat(String minLat) {
+        this.minLat = minLat;
     }
 
-    public float getSpeed() {
-        return speed;
+    public String getMaxLat() {
+        return maxLat;
     }
 
-    public void setSpeed(float speed) {
-        this.speed = speed;
+    public void setMaxLat(String maxLat) {
+        this.maxLat = maxLat;
     }
-    
-    public float getFlowDiameter() {
+
+    public String getMinLng() {
+        return minLng;
+    }
+
+    public void setMinLng(String minLng) {
+        this.minLng = minLng;
+    }
+
+    public String getMaxLng() {
+        return maxLng;
+    }
+
+    public void setMaxLng(String maxLng) {
+        this.maxLng = maxLng;
+    }
+
+    public String getFlowSpeed() {
+        return flowSpeed;
+    }
+
+    public void setFlowSpeed(String flowSpeed) {
+        this.flowSpeed = flowSpeed;
+    }
+
+    public String getFlowDiameter() {
         return flowDiameter;
     }
 
-    public void setFlowDiameter(float flowDiameter) {
+    public void setFlowDiameter(String flowDiameter) {
         this.flowDiameter = flowDiameter;
     }
 
-    public int getFlowColorRed() {
-        return flowColorRed;
+    public String getFlowColorRGB() {
+        return flowColorRGB;
     }
 
-    public void setFlowColorRed(int flowColorRed) {
-        this.flowColorRed = flowColorRed;
+    public void setFlowColorRGB(String flowColorRGB) {
+        this.flowColorRGB = flowColorRGB;
     }
 
-    public int getFlowColorGreen() {
-        return flowColorGreen;
-    }
-
-    public void setFlowColorGreen(int flowColorGreen) {
-        this.flowColorGreen = flowColorGreen;
-    }
-
-    public int getFlowColorBlue() {
-        return flowColorBlue;
-    }
-
-    public void setFlowColorBlue(int flowColorBlue) {
-        this.flowColorBlue = flowColorBlue;
-    }
-
-    public int getMaxFlowDotNum() {
-        return maxFlowDotNum;
-    }
-
-    public void setMaxFlowDotNum(int maxFlowDotNum) {
-        this.maxFlowDotNum = maxFlowDotNum;
-    }
-
-    public Map<Integer, Integer> getFlowClasses() {
+    public String getFlowClasses() {
         return flowClasses;
     }
 
-    public void setFlowClasses(Map<Integer, Integer> flowClasses) {
+    public void setFlowClasses(String flowClasses) {
         this.flowClasses = flowClasses;
-    }
-
-    public int[] getStayClasses() {
-        return stayClasses;
-    }
-
-    public void setStayClasses(int[] stayClasses) {
-        this.stayClasses = stayClasses;
     }
 
 }

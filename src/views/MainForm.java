@@ -3,8 +3,13 @@ package views;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -14,11 +19,10 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JSeparator;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 
-import processing.core.PApplet;
-import cores.STEAM;
 import cores.STEAMParams;
 import net.miginfocom.swing.MigLayout;
 
@@ -26,31 +30,28 @@ public class MainForm extends JFrame {
 
     private static final long serialVersionUID = 1L;
 
-    // menu
     private JMenuBar jMenuBar;
 
-    // panels
     private JPanel jContentPane;
     private JTabbedPane jControlPane;
     private JPanel jBasicControlPane;
     private JPanel jVizControlPane;
     private JPanel jPlayPane;
 
-    // text fields
     private JTextField txtWidth;
     private JTextField txtHeight;
     private JTextField txtShpDir;
-    private JTextField txtFlowDir;
-    private JTextField txtStayDir;
+    private JTextField txtFlowPath;
     private JTextField txtMinLat;
     private JTextField txtMaxLat;
     private JTextField txtMinLng;
     private JTextField txtMaxLng;
-    private JTextField txtSpeed;
+    private JTextField txtFlowSpeed;
     private JTextField txtFlowDiameter;
-    private JTextField txtFlowRGB;
+    private JTextField txtFlowColorRGB;
     private JTextField txtFlowClasses;
-    private JTextField txtStayClasses;
+    
+    private String projFilePath;
 
     public static void main(String[] args) {
 	EventQueue.invokeLater(new Runnable() {
@@ -76,6 +77,8 @@ public class MainForm extends JFrame {
 	this.setTitle("STEAM (Space-Time Environment for Analysis of Mobility)");
 	this.setJMenuBar(getCustJMenuBar());
 	this.setContentPane(getJContentPane());
+	
+	projFilePath = "";
     }
 
     private JMenuBar getCustJMenuBar() {
@@ -84,13 +87,109 @@ public class MainForm extends JFrame {
 	JMenu jMenu;
 	JMenuItem jMenuItem;
 
-	// initialize the file menu
 	jMenu = new JMenu("File");
 	jMenuBar.add(jMenu);
+	
+	jMenuItem = new JMenuItem("New");
+	jMenuItem.addActionListener(new ActionListener() {
+	    @Override
+	    public void actionPerformed(ActionEvent e) {
+		createNewProject();
+	    }
+	});
+	jMenu.add(jMenuItem);
+	
+	jMenu.addSeparator();
 
 	jMenuItem = new JMenuItem("Open");
+	jMenuItem.addActionListener(new ActionListener() {
+	    @Override
+	    public void actionPerformed(ActionEvent e) {
+		JFileChooser chooser = new JFileChooser();
+		if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+		    projFilePath = chooser.getSelectedFile().toString();
+		    
+		    ObjectInputStream ois;
+		    try {
+			ois = new ObjectInputStream(new FileInputStream(projFilePath));
+			STEAMParams params = (STEAMParams) ois.readObject();
+			ois.close();
+			
+			objToParams(params);
+		    } catch (FileNotFoundException e1) {
+			e1.printStackTrace();
+		    } catch (IOException e2) {
+			e2.printStackTrace();
+		    } catch (ClassNotFoundException e3) {
+			e3.printStackTrace();
+		    }
+		}
+	    }
+	});
+	jMenu.add(jMenuItem);
+	
+	jMenu.addSeparator();
+	
+	jMenuItem = new JMenuItem("Save");
+	jMenuItem.addActionListener(new ActionListener() {
+	    @Override
+	    public void actionPerformed(ActionEvent e) {
+		if (projFilePath.equals("")) {
+		    JFileChooser chooser = new JFileChooser();
+		    if (chooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
+			projFilePath = chooser.getSelectedFile().toString();
+			if (!projFilePath.endsWith(".stm")) {
+			    projFilePath += ".stm";
+			}
+		    }
+		}
+		   
+		STEAMParams params = paramsToObj();
+			
+		ObjectOutputStream oos;
+		try {
+		    oos = new ObjectOutputStream(new FileOutputStream(new File(projFilePath)));
+		    oos.writeObject(params);
+		    oos.close();
+		} catch (FileNotFoundException e1) {
+		    e1.printStackTrace();
+		} catch (IOException e2) {
+		    e2.printStackTrace();
+		}
+	    }
+	});
 	jMenu.add(jMenuItem);
 
+	jMenuItem = new JMenuItem("Save As");
+	jMenuItem.addActionListener(new ActionListener() {
+	    @Override
+	    public void actionPerformed(ActionEvent e) {
+		JFileChooser chooser = new JFileChooser();
+		if (chooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
+		    projFilePath = chooser.getSelectedFile().toString();
+		    if (!projFilePath.endsWith(".stm")) {
+			projFilePath += ".stm";
+		    }
+		    
+		    STEAMParams params = paramsToObj();
+			
+		    ObjectOutputStream oos;
+		    try {
+			oos = new ObjectOutputStream(new FileOutputStream(new File(projFilePath)));
+			oos.writeObject(params);
+			oos.close();
+		    } catch (FileNotFoundException e1) {
+			e1.printStackTrace();
+		    } catch (IOException e2) {
+			e2.printStackTrace();
+		    }
+		}
+	    }
+	});
+	jMenu.add(jMenuItem);
+
+	jMenu.addSeparator();
+	
 	jMenuItem = new JMenuItem("Exit");
 	jMenuItem.addActionListener(new ActionListener() {
 	    @Override
@@ -100,16 +199,19 @@ public class MainForm extends JFrame {
 	});
 	jMenu.add(jMenuItem);
 
-	// initialize the help menu
 	jMenu = new JMenu("Help");
 	jMenuBar.add(jMenu);
 
 	jMenuItem = new JMenuItem("Getting Started");
 	jMenu.add(jMenuItem);
 
+	jMenu.addSeparator();
+
 	jMenuItem = new JMenuItem("Release Notes");
 	jMenu.add(jMenuItem);
 
+	jMenu.addSeparator();
+	
 	jMenuItem = new JMenuItem("About");
 	jMenu.add(jMenuItem);
 
@@ -118,7 +220,7 @@ public class MainForm extends JFrame {
 
     private JPanel getJContentPane() {
 	jContentPane = new JPanel();
-	jContentPane.setLayout(new MigLayout("debug", "[]", "[][]"));
+	jContentPane.setLayout(new MigLayout());
 	jContentPane.add(getControlPane(), "span, pushx, pushy, grow x, grow y");
 	jContentPane.add(getPlayPane(), "span, height :50:, pushx, grow x");
 
@@ -141,63 +243,10 @@ public class MainForm extends JFrame {
 	btnPlay.addActionListener(new ActionListener() {
 	    @Override
 	    public void actionPerformed(ActionEvent e) {
-		getDebugValues();
-		
-		STEAMParams params = new STEAMParams();
-		params.setWidth(Integer.valueOf(txtWidth.getText()));
-		params.setHeight(Integer.valueOf(txtHeight.getText()));
-		params.setShpDir(txtShpDir.getText());
-		params.setFlowDir(txtFlowDir.getText());
-		params.setStayDir(txtStayDir.getText());
-		params.setSpeed(Float.valueOf(txtSpeed.getText()));
-		params.setFlowDiameter(Float.valueOf(txtFlowDiameter.getText()));
-		params.setMinLat(Float.valueOf(txtMinLat.getText()));
-		params.setMaxLat(Float.valueOf(txtMaxLat.getText()));
-		params.setMinLng(Float.valueOf(txtMinLng.getText()));
-		params.setMaxLng(Float.valueOf(txtMaxLng.getText()));
-		
-		String[] flowRGBArr = txtFlowRGB.getText().split(",");
-		params.setFlowColorRed(Integer.valueOf(flowRGBArr[0]));
-		params.setFlowColorGreen(Integer.valueOf(flowRGBArr[1]));
-		params.setFlowColorBlue(Integer.valueOf(flowRGBArr[2]));
-		
-		Map<Integer, Integer> flowClasses = new LinkedHashMap<>();
-		String[] flowClassesArr = txtFlowClasses.getText().split(";");
-		for (int i = 0; i < flowClassesArr.length - 1; i++) {
-		    int volume = Integer.valueOf(flowClassesArr[i].split(":")[0]);
-		    int dotNum = Integer.valueOf(flowClassesArr[i].split(":")[1]);
-		    flowClasses.put(volume, dotNum);
-		}
-		params.setFlowClasses(flowClasses);
-		params.setMaxFlowDotNum(Integer.valueOf(flowClassesArr[flowClassesArr.length - 1]));
-		
-		String[] stayClassesArr = txtStayClasses.getText().split(",");
-		int stayArrayLen = stayClassesArr.length;
-		int[] stayClasses = new int[stayArrayLen];
-		for (int i = 0; i < stayArrayLen; i++) {
-		    stayClasses[i] = Integer.parseInt(stayClassesArr[i]);
-		}
-		params.setStayClasses(stayClasses);
+		STEAMParams params = paramsToObj();
 		
 		VizForm frmViz = new VizForm(params);
 		frmViz.setVisible(true);
-	    }
-
-	    private void getDebugValues() {
-		txtWidth.setText("1400");
-		txtHeight.setText("800");
-		txtShpDir.setText("/Users/ziliangzhao/Workspace/Eclipse/STEAM/data/shapefiles");
-		txtFlowDir.setText("/Users/ziliangzhao/Workspace/Eclipse/STEAM/data/flows");
-		txtStayDir.setText("/Users/ziliangzhao/Workspace/Eclipse/STEAM/data/stays");
-		txtMinLat.setText("22.446381");
-		txtMaxLat.setText("22.850963");
-		txtMinLng.setText("113.764798");
-		txtMaxLng.setText("114.628047");
-		txtSpeed.setText("200");
-		txtFlowRGB.setText("255,0,0");
-		txtFlowDiameter.setText("0.6");
-		txtFlowClasses.setText("100:1;200:2;300:3;400:4;500:5;600:6;700:7;800:8;900:9;1000:10;1100:11;1200:12;1300:13;14");
-		txtStayClasses.setText("2000,4000,6000,8000,10000,12000,14000,16000,18000");
 	    }
 	});
 	jPlayPane.add(btnPlay);
@@ -206,7 +255,10 @@ public class MainForm extends JFrame {
     }
 
     private JPanel getBasicControlPane() {
-	jBasicControlPane = new JPanel(new MigLayout("debug", "[][][][][][][][]", "[][][][]"));
+	jBasicControlPane = new JPanel(new MigLayout());
+	
+	JLabel lblVizWindowSize = new JLabel("Visualization Window Size");
+	jBasicControlPane.add(lblVizWindowSize, "wrap");
 
 	JLabel lblWidth = new JLabel("Width:");
 	jBasicControlPane.add(lblWidth, "split 4");
@@ -219,6 +271,11 @@ public class MainForm extends JFrame {
 
 	txtHeight = new JTextField();
 	jBasicControlPane.add(txtHeight, "width :60:, wrap");
+	
+	jBasicControlPane.add(new JSeparator(JSeparator.HORIZONTAL), "growx, wrap");
+	
+	JLabel lblDataSelection = new JLabel("Data Selection");
+	jBasicControlPane.add(lblDataSelection, "wrap");
 
 	JLabel lblShpDir = new JLabel("Shapefile Directory:");
 	jBasicControlPane.add(lblShpDir, "split 3, sg a");
@@ -239,49 +296,32 @@ public class MainForm extends JFrame {
 	});
 	jBasicControlPane.add(btnSelectShpDir, "wrap");
 
-	JLabel lblFlowDir = new JLabel("Flow Data Directory:");
-	jBasicControlPane.add(lblFlowDir, "split 3, sg a");
+	JLabel lblFlowPath = new JLabel("Flow Data Path:");
+	jBasicControlPane.add(lblFlowPath, "split 3, sg a");
 
-	txtFlowDir = new JTextField();
-	jBasicControlPane.add(txtFlowDir, "width :200:, pushx, growx");
+	txtFlowPath = new JTextField();
+	jBasicControlPane.add(txtFlowPath, "width :200:, pushx, growx");
 
-	JButton btnSelectFlowDir = new JButton("Select");
-	btnSelectFlowDir.addActionListener(new ActionListener() {   
+	JButton btnSelectFlowPath = new JButton("Select");
+	btnSelectFlowPath.addActionListener(new ActionListener() {   
 	    @Override
 	    public void actionPerformed(ActionEvent e) {
 		JFileChooser chooser = new JFileChooser();
-		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-		    txtFlowDir.setText(chooser.getSelectedFile().toString());
+		    txtFlowPath.setText(chooser.getSelectedFile().toString());
 		}
 	    }
 	});
-	jBasicControlPane.add(btnSelectFlowDir, "wrap");
-	
-	JLabel lblStayDir = new JLabel("Stay Data Directory:");
-	jBasicControlPane.add(lblStayDir, "split 3, sg a");
-
-	txtStayDir = new JTextField();
-	jBasicControlPane.add(txtStayDir, "width :200:, pushx, growx");
-
-	JButton btnSelectStayDir = new JButton("Select");
-	btnSelectStayDir.addActionListener(new ActionListener() {   
-	    @Override
-	    public void actionPerformed(ActionEvent e) {
-		JFileChooser chooser = new JFileChooser();
-		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-		if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-		    txtStayDir.setText(chooser.getSelectedFile().toString());
-		}
-	    }
-	});
-	jBasicControlPane.add(btnSelectStayDir, "wrap");
+	jBasicControlPane.add(btnSelectFlowPath, "wrap");
 
 	return jBasicControlPane;
     }
 
     private JPanel getVizControlPane() {
-	jVizControlPane = new JPanel(new MigLayout("debug", "[][][][][][][][]", ""));
+	jVizControlPane = new JPanel(new MigLayout());
+	
+	JLabel lblMapExtent = new JLabel("Map Extent");
+	jVizControlPane.add(lblMapExtent, "wrap");
 	
 	JLabel lblMinLat = new JLabel("MinLat:");
 	jVizControlPane.add(lblMinLat, "split 8");
@@ -307,37 +347,89 @@ public class MainForm extends JFrame {
 	txtMaxLng = new JTextField();
 	jVizControlPane.add(txtMaxLng, "width :100:, wrap");
 	
-	JLabel lblSpeed = new JLabel("Speed:");
-	jVizControlPane.add(lblSpeed, "split");
+	jVizControlPane.add(new JSeparator(JSeparator.HORIZONTAL), "growx, wrap");
 	
-	txtSpeed = new JTextField();
-	jVizControlPane.add(txtSpeed, "width :100:");
+	JLabel lblFlowPointProp = new JLabel("Flow Point Properties");
+	jVizControlPane.add(lblFlowPointProp, "wrap");
 	
-	JLabel lblFlowDiameter = new JLabel("Flow Diameter:");
+	JLabel lblFlowSpeed = new JLabel("Speed:");
+	jVizControlPane.add(lblFlowSpeed, "split");
+	
+	txtFlowSpeed = new JTextField();
+	jVizControlPane.add(txtFlowSpeed, "width :100:");
+	
+	JLabel lblFlowDiameter = new JLabel("Diameter:");
 	jVizControlPane.add(lblFlowDiameter);
 	
 	txtFlowDiameter = new JTextField();
 	jVizControlPane.add(txtFlowDiameter, "width :100:");
 	
-	JLabel lblFlowRGB = new JLabel("Flow RGB:");
+	JLabel lblFlowRGB = new JLabel("RGB:");
 	jVizControlPane.add(lblFlowRGB);
 	
-	txtFlowRGB = new JTextField();
-	jVizControlPane.add(txtFlowRGB, "width :100:, wrap");
+	txtFlowColorRGB = new JTextField();
+	jVizControlPane.add(txtFlowColorRGB, "width :100:, wrap");
 	
-	JLabel lblFlowClasses = new JLabel("Flow classes:");
+	jVizControlPane.add(new JSeparator(JSeparator.HORIZONTAL), "growx, wrap");
+	
+	JLabel lblFlowClasses = new JLabel("Flow Classes:");
 	jVizControlPane.add(lblFlowClasses, "left sg1, split");
 	
 	txtFlowClasses = new JTextField();
 	jVizControlPane.add(txtFlowClasses, "pushx, growx, wrap");
-	
-	JLabel lblStayClasses = new JLabel("Stay classes:");
-	jVizControlPane.add(lblStayClasses, "left sg1, split");
-	
-	txtStayClasses = new JTextField();
-	jVizControlPane.add(txtStayClasses, "pushx, growx, wrap");
 
 	return jVizControlPane;
+    }
+    
+    private void createNewProject() {
+	projFilePath = "";
+	
+	txtWidth.setText("");
+	txtHeight.setText("");
+	txtShpDir.setText("");
+	txtFlowPath.setText("");
+	txtMinLat.setText("");
+	txtMaxLat.setText("");
+	txtMinLng.setText("");
+	txtMaxLng.setText("");
+	txtFlowSpeed.setText("");
+	txtFlowDiameter.setText("");
+	txtFlowColorRGB.setText("");
+	txtFlowClasses.setText("");
+    }
+    
+    private STEAMParams paramsToObj() {
+	STEAMParams params = new STEAMParams();
+	
+	params.setWidth(txtWidth.getText());
+	params.setHeight(txtHeight.getText());
+	params.setShpDir(txtShpDir.getText());
+	params.setFlowPath(txtFlowPath.getText());
+	params.setMinLat(txtMinLat.getText());
+	params.setMaxLat(txtMaxLat.getText());
+	params.setMinLng(txtMinLng.getText());
+	params.setMaxLng(txtMaxLng.getText());
+	params.setFlowSpeed(txtFlowSpeed.getText());
+	params.setFlowDiameter(txtFlowDiameter.getText());
+	params.setFlowColorRGB(txtFlowColorRGB.getText());
+	params.setFlowClasses(txtFlowClasses.getText());
+	
+	return params;
+    }
+    
+    private void objToParams(STEAMParams params) {
+	txtWidth.setText(params.getWidth());
+	txtHeight.setText(params.getHeight());
+	txtShpDir.setText(params.getShpDir());
+	txtFlowPath.setText(params.getFlowPath());
+	txtMinLat.setText(params.getMinLat());
+	txtMaxLat.setText(params.getMaxLat());
+	txtMinLng.setText(params.getMinLng());
+	txtMaxLng.setText(params.getMaxLng());
+	txtFlowSpeed.setText(params.getFlowSpeed());
+	txtFlowDiameter.setText(params.getFlowDiameter());
+	txtFlowColorRGB.setText(params.getFlowColorRGB());
+	txtFlowClasses.setText(params.getFlowClasses());
     }
 
 }

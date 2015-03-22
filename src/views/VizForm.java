@@ -4,11 +4,9 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 
 import javax.swing.JFrame;
-import javax.swing.JPanel;
 
 import cores.STEAM;
 import cores.STEAMParams;
-import net.miginfocom.swing.MigLayout;
 import processing.core.PApplet;
 
 public class VizForm extends JFrame {
@@ -28,10 +26,13 @@ public class VizForm extends JFrame {
 	this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	this.setLayout(new BorderLayout());
 	
+	int width = Integer.valueOf(params.getWidth());
+	int height = Integer.valueOf(params.getHeight());
+	
 	PApplet sketch = new STEAM(params);
-	sketch.resize(params.getWidth(), params.getHeight());
-	sketch.setPreferredSize(new Dimension(params.getWidth(), params.getHeight()));
-	sketch.setMinimumSize(new Dimension(params.getWidth(), params.getHeight()));
+	sketch.resize(width, height);
+	sketch.setPreferredSize(new Dimension(width, height));
+	sketch.setMinimumSize(new Dimension(width, height));
 	
         add(sketch, BorderLayout.CENTER);
         
