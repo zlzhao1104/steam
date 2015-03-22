@@ -23,7 +23,6 @@ public class VizForm extends JFrame {
 
     private void initialize() {
 	this.setResizable(false);
-	this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	this.setLayout(new BorderLayout());
 	
 	int width = Integer.valueOf(params.getWidth());
