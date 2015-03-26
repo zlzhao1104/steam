@@ -10,21 +10,29 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.List;
 
+import javax.swing.DefaultListModel;
+import javax.swing.DropMode;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
+import javax.swing.ListModel;
 
-import cores.STEAMParams;
 import net.miginfocom.swing.MigLayout;
+import utils.DirWalker;
+import utils.ListTransferHandler;
+import cores.STEAMParams;
 
 public class MainForm extends JFrame {
 
@@ -41,7 +49,7 @@ public class MainForm extends JFrame {
     private JTextField txtWidth;
     private JTextField txtHeight;
     private JTextField txtShpDir;
-    private JTextField txtFlowPath;
+    private JTextField txtFlowDir;
     private JTextField txtMinLat;
     private JTextField txtMaxLat;
     private JTextField txtMinLng;
@@ -50,6 +58,8 @@ public class MainForm extends JFrame {
     private JTextField txtFlowDiameter;
     private JTextField txtFlowColorRGB;
     private JTextField txtFlowClasses;
+    
+    private JList<String> lstFlowFiles;
     
     private String projFilePath;
 
@@ -72,7 +82,7 @@ public class MainForm extends JFrame {
     }
 
     private void initialize() {
-	this.setSize(640, 360);
+	this.setSize(640, 480);
 	this.setResizable(false);
 	this.setTitle("STEAM (Space-Time Environment for Analysis of Mobility)");
 	this.setJMenuBar(getCustJMenuBar());
@@ -106,7 +116,8 @@ public class MainForm extends JFrame {
 	    @Override
 	    public void actionPerformed(ActionEvent e) {
 		JFileChooser chooser = new JFileChooser();
-		if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+		int result = chooser.showOpenDialog(null);
+		if (result == JFileChooser.APPROVE_OPTION) {
 		    projFilePath = chooser.getSelectedFile().toString();
 		    
 		    ObjectInputStream ois;
@@ -136,25 +147,28 @@ public class MainForm extends JFrame {
 	    public void actionPerformed(ActionEvent e) {
 		if (projFilePath.equals("")) {
 		    JFileChooser chooser = new JFileChooser();
-		    if (chooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
+		    int result = chooser.showSaveDialog(null);
+		    if (result == JFileChooser.APPROVE_OPTION) {
 			projFilePath = chooser.getSelectedFile().toString();
 			if (!projFilePath.endsWith(".stm")) {
 			    projFilePath += ".stm";
 			}
 		    }
 		}
-		   
-		STEAMParams params = paramsToObj();
+		
+		if (!projFilePath.equals("")) {
+		    STEAMParams params = paramsToObj();
 			
-		ObjectOutputStream oos;
-		try {
-		    oos = new ObjectOutputStream(new FileOutputStream(new File(projFilePath)));
-		    oos.writeObject(params);
-		    oos.close();
-		} catch (FileNotFoundException e1) {
-		    e1.printStackTrace();
-		} catch (IOException e2) {
-		    e2.printStackTrace();
+		    ObjectOutputStream oos;
+		    try {
+			oos = new ObjectOutputStream(new FileOutputStream(new File(projFilePath)));
+			oos.writeObject(params);
+			oos.close();
+		    } catch (FileNotFoundException e1) {
+			e1.printStackTrace();
+		    } catch (IOException e2) {
+			e2.printStackTrace();
+		    }
 		}
 	    }
 	});
@@ -165,7 +179,8 @@ public class MainForm extends JFrame {
 	    @Override
 	    public void actionPerformed(ActionEvent e) {
 		JFileChooser chooser = new JFileChooser();
-		if (chooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
+		int result = chooser.showSaveDialog(null);
+		if (result == JFileChooser.APPROVE_OPTION) {
 		    projFilePath = chooser.getSelectedFile().toString();
 		    if (!projFilePath.endsWith(".stm")) {
 			projFilePath += ".stm";
@@ -271,7 +286,7 @@ public class MainForm extends JFrame {
 
 	txtHeight = new JTextField();
 	jBasicControlPane.add(txtHeight, "width :60:, wrap");
-	
+
 	jBasicControlPane.add(new JSeparator(JSeparator.HORIZONTAL), "growx, wrap");
 	
 	JLabel lblDataSelection = new JLabel("Data Selection");
@@ -296,23 +311,43 @@ public class MainForm extends JFrame {
 	});
 	jBasicControlPane.add(btnSelectShpDir, "wrap");
 
-	JLabel lblFlowPath = new JLabel("Flow Data Path:");
-	jBasicControlPane.add(lblFlowPath, "split 3, sg a");
+	JLabel lblFlowDir = new JLabel("Flow Data Directory:");
+	jBasicControlPane.add(lblFlowDir, "split 3, sg a");
 
-	txtFlowPath = new JTextField();
-	jBasicControlPane.add(txtFlowPath, "width :200:, pushx, growx");
+	txtFlowDir = new JTextField();
+	jBasicControlPane.add(txtFlowDir, "width :200:, pushx, growx");
 
-	JButton btnSelectFlowPath = new JButton("Select");
-	btnSelectFlowPath.addActionListener(new ActionListener() {   
+	JButton btnSelectFlowDir = new JButton("Select");
+	btnSelectFlowDir.addActionListener(new ActionListener() {   
 	    @Override
 	    public void actionPerformed(ActionEvent e) {
 		JFileChooser chooser = new JFileChooser();
+		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-		    txtFlowPath.setText(chooser.getSelectedFile().toString());
+		    txtFlowDir.setText(chooser.getSelectedFile().toString());
+
+		    DefaultListModel<String> lm = new DefaultListModel<>();	
+		    List<String> flowPathList = DirWalker.listFiles(txtFlowDir.getText(), "csv");
+		    for (int i = 0; i < flowPathList.size(); i++) {
+			lm.addElement(flowPathList.get(i));
+		    }
+		    lstFlowFiles.setModel(lm);
 		}
 	    }
 	});
-	jBasicControlPane.add(btnSelectFlowPath, "wrap");
+	jBasicControlPane.add(btnSelectFlowDir, "wrap");
+	
+	JLabel lblFlowFilesList = new JLabel("Flow Files List:");
+	jBasicControlPane.add(lblFlowFilesList, "wrap");
+	
+	lstFlowFiles = new JList<>();
+	lstFlowFiles.setDragEnabled(true);
+	lstFlowFiles.setDropMode(DropMode.INSERT);
+	lstFlowFiles.setTransferHandler(new ListTransferHandler());
+	
+	JScrollPane jFlowFilesScrollPane = new JScrollPane();
+	jFlowFilesScrollPane.setViewportView(lstFlowFiles);
+	jBasicControlPane.add(jFlowFilesScrollPane, "growx, growy");
 
 	return jBasicControlPane;
     }
@@ -387,7 +422,7 @@ public class MainForm extends JFrame {
 	txtWidth.setText("");
 	txtHeight.setText("");
 	txtShpDir.setText("");
-	txtFlowPath.setText("");
+	txtFlowDir.setText("");
 	txtMinLat.setText("");
 	txtMaxLat.setText("");
 	txtMinLng.setText("");
@@ -404,7 +439,7 @@ public class MainForm extends JFrame {
 	params.setWidth(txtWidth.getText());
 	params.setHeight(txtHeight.getText());
 	params.setShpDir(txtShpDir.getText());
-	params.setFlowPath(txtFlowPath.getText());
+	params.setFlowDir(txtFlowDir.getText());
 	params.setMinLat(txtMinLat.getText());
 	params.setMaxLat(txtMaxLat.getText());
 	params.setMinLng(txtMinLng.getText());
@@ -414,6 +449,17 @@ public class MainForm extends JFrame {
 	params.setFlowColorRGB(txtFlowColorRGB.getText());
 	params.setFlowClasses(txtFlowClasses.getText());
 	
+	String flowFilePaths = "";
+	ListModel<String> lm = lstFlowFiles.getModel();
+	for(int i = 0; i < lm.getSize(); i++){
+	    if (flowFilePaths.equals("")) {
+		flowFilePaths += lm.getElementAt(i);  
+	    } else {
+		flowFilePaths += ";" + lm.getElementAt(i); 
+	    }
+	}
+	params.setFlowFilePaths(flowFilePaths);
+	
 	return params;
     }
     
@@ -421,7 +467,7 @@ public class MainForm extends JFrame {
 	txtWidth.setText(params.getWidth());
 	txtHeight.setText(params.getHeight());
 	txtShpDir.setText(params.getShpDir());
-	txtFlowPath.setText(params.getFlowPath());
+	txtFlowDir.setText(params.getFlowDir());
 	txtMinLat.setText(params.getMinLat());
 	txtMaxLat.setText(params.getMaxLat());
 	txtMinLng.setText(params.getMinLng());
@@ -430,6 +476,14 @@ public class MainForm extends JFrame {
 	txtFlowDiameter.setText(params.getFlowDiameter());
 	txtFlowColorRGB.setText(params.getFlowColorRGB());
 	txtFlowClasses.setText(params.getFlowClasses());
+
+	DefaultListModel<String> lm = new DefaultListModel<>();	
+	String[] flowFilePathsArr = params.getFlowFilePaths().split(";");
+	for (int i = 0; i < flowFilePathsArr.length; i++) {
+	    lm.addElement(flowFilePathsArr[i]);
+	}
+	lstFlowFiles.setModel(lm);
+	
     }
 
 }

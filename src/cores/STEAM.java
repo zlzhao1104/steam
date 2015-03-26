@@ -8,6 +8,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.JFrame;
+
 import org.geotools.data.DataStore;
 import org.geotools.data.DataStoreFinder;
 import org.geotools.data.FeatureSource;
@@ -29,11 +31,20 @@ public class STEAM extends PApplet {
 
     private static final long serialVersionUID = 1L;
     
+    private JFrame container;				// the JFrame that contains this PApplet
+    
     private int width;					// width of the visualization window
     private int height;					// height of the visualization window
-
-    private String shpDir; 				// dir that stores all shapefiles
-    private String flowPath;				// dir that stores all flow files
+    
+    private String shpDir;				// list for all shapefiles
+    private String flowFilePaths;			// paths for all flow files
+    
+    private List<Points> points;			// list that stores point shapes
+    private List<Lines> lines;				// list that stores line shapes
+    private List<Polygons> polygons;			// list that stores polygon shapes
+    
+    private Map<Integer, String> flowFilePathsMap;	// map that stores flow paths
+    private int curFlowId;				// ID of flow file that is currently being displayed
     
     private float minLat; 				// min latitude of map extent
     private float maxLat; 				// max latitude of map extent
@@ -42,7 +53,6 @@ public class STEAM extends PApplet {
     
     private float flowSpeed;				// speed of animation
     private float flowDiameter;				// diameter of flowing dots
-    private String flowColorRGB;			// rgb value of moving dot
     private int flowColorRed;				// red vaule of moving dot
     private int flowColorGreen;				// green value of moving dot
     private int flowColorBlue;				// blue value of moving dot
@@ -50,10 +60,6 @@ public class STEAM extends PApplet {
     private Map<Integer, Integer> flowClasses;		// classification scheme for flow volume and corresponding flowing dot number
     
     private BoundingBox envelope;			// bounding box of map extent
-    
-    private List<Points> points;			// list that stores point shapes
-    private List<Lines> lines;				// list that stores line shapes
-    private List<Polygons> polygons;			// list that stores polygon shapes
     
     private int flowCount;				// number of flows
     private int maxFlowDotNum;				// max possible number of flowing dots of all flows
@@ -78,16 +84,14 @@ public class STEAM extends PApplet {
     private float diffX;				// difference between mouseX and shiftX
     private float diffY;				// difference between mouseY and shiftY
     private boolean mousePressed;			// if mouse key is pressed
-    
-    public static void main(String args[]) {
-	PApplet.main(new String[] {"PAppletSTEAM"});
-    }
 
-    public STEAM(STEAMParams params) {
+    public STEAM(JFrame container, STEAMParams params) {
+	this.container = container;
+	
 	this.width = Integer.valueOf(params.getWidth());
 	this.height = Integer.valueOf(params.getHeight());
 	this.shpDir = params.getShpDir();
-	this.flowPath = params.getFlowPath();
+	this.flowFilePaths = params.getFlowFilePaths();
 	this.minLat = Float.valueOf(params.getMinLat());
 	this.maxLat = Float.valueOf(params.getMaxLat());
 	this.minLng = Float.valueOf(params.getMinLng());
@@ -95,28 +99,31 @@ public class STEAM extends PApplet {
 	this.flowSpeed = Float.valueOf(params.getFlowSpeed());
 	this.flowDiameter = Float.valueOf(params.getFlowDiameter());
 	
-	this.flowColorRGB = params.getFlowColorRGB();
-	String[] flowColorRGBArr = this.flowColorRGB.split(",");
-	this.flowColorRed = Integer.valueOf(flowColorRGBArr[0]);
-	this.flowColorGreen = Integer.valueOf(flowColorRGBArr[1]);
-	this.flowColorBlue = Integer.valueOf(flowColorRGBArr[2]);
+	String flowClorRgb = params.getFlowColorRGB();
+	String[] flowColorRgbArr = flowClorRgb.split(",");
+	this.flowColorRed = Integer.valueOf(flowColorRgbArr[0]);
+	this.flowColorGreen = Integer.valueOf(flowColorRgbArr[1]);
+	this.flowColorBlue = Integer.valueOf(flowColorRgbArr[2]);
 	
 	this.flowClasses = new LinkedHashMap<>();
 	String[] flowClassesArr = params.getFlowClasses().split(";");
-	for (int i = 0; i < flowClassesArr.length - 1; i++) {
+	for (int i = 0; i < flowClassesArr.length; i++) {
 	    int volume = Integer.valueOf(flowClassesArr[i].split(":")[0]);
 	    int dotNum = Integer.valueOf(flowClassesArr[i].split(":")[1]);
-	    flowClasses.put(volume, dotNum);
+	    this.flowClasses.put(volume, dotNum);
+	    
+	    if (i == flowClassesArr.length - 1) {
+		this.maxFlowDotNum = dotNum;
+	    }
 	}
-	this.maxFlowDotNum = Integer.valueOf(flowClassesArr[flowClassesArr.length - 1]);
 	
-	keyMultiple = 0.25d;
-	mouseWheelMultiple = 0.25d;
-	minScaleFactor = 0.1d;
-	scaleFactor = 1d;
-	diffX = 0f;
-	diffY = 0f;
-	mousePressed = false;
+	this.keyMultiple = 0.25d;
+	this.mouseWheelMultiple = 0.25d;
+	this.minScaleFactor = 0.1d;
+	this.scaleFactor = 1d;
+	this.diffX = 0f;
+	this.diffY = 0f;
+	this.mousePressed = false;
     }
 
     public void setup() {
@@ -126,23 +133,23 @@ public class STEAM extends PApplet {
 	// smooth edges
 	smooth();
 	
+	// add mouse listener
 	addMouseWheelListener(new java.awt.event.MouseWheelListener() {
 	    public void mouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
 		mouseWheel(evt.getWheelRotation());
 	    }
 	});
-
+	
 	// read shapefiles
 	this.points = new ArrayList<>();
 	this.lines = new ArrayList<>();
 	this.polygons = new ArrayList<>();
 
-	List<String> shpPaths = DirWalker.listFiles(shpDir, "shp");
-
-	for (int i = 0; i < shpPaths.size(); i++) {
+	List<String> shpPathList = DirWalker.listFiles(shpDir, "shp");
+	for (int i = 0; i < shpPathList.size(); i++) {
 	    DataStore dataStore = null;
 	    try {
-		File file = new File(shpPaths.get(i));
+		File file = new File(shpPathList.get(i));
 		Map<String, Serializable> map = new HashMap<>();
 		map.put("url", file.toURI().toURL());
 
@@ -153,11 +160,11 @@ public class STEAM extends PApplet {
 		Class<?> geomType = schema.getGeometryDescriptor().getType().getBinding();
 
 		if (Polygon.class.isAssignableFrom(geomType) || MultiPolygon.class.isAssignableFrom(geomType)) {
-		    this.polygons.add(new Polygons(this.envelope, shpPaths.get(i)));
+		    this.polygons.add(new Polygons(this.envelope, shpPathList.get(i)));
 		} else if (LineString.class.isAssignableFrom(geomType) || MultiLineString.class.isAssignableFrom(geomType)) {
-		    this.lines.add(new Lines(this.envelope, shpPaths.get(i)));
+		    this.lines.add(new Lines(this.envelope, shpPathList.get(i)));
 		} else {
-		    this.points.add(new Points(this.envelope, shpPaths.get(i)));
+		    this.points.add(new Points(this.envelope, shpPathList.get(i)));
 		}
 	    } catch (Exception e) {
 
@@ -167,49 +174,56 @@ public class STEAM extends PApplet {
 	}
 
 	// read flow file
-	readFlow(this.flowPath);
+	this.flowFilePathsMap = new LinkedHashMap<>();
+	String[] flowPathArr = this.flowFilePaths.split(";");
+	for (int i = 0; i < flowPathArr.length; i++) {
+	    this.flowFilePathsMap.put(i, flowPathArr[i]);
+	}
+	
+	this.curFlowId = 0;
+	readFlow(this.flowFilePathsMap.get(this.curFlowId));
     }
 
     public void draw() {
 	// clear background
 	background(0);
 	
-	// translate coordinates due to zoom in, zoom out, and pan
-	float tranX0 = (float) (width - width * this.scaleFactor) / 2f;
-	float tranY0 = (float) (height - height * this.scaleFactor) / 2f;
+	// translate coordinates due to zoom-in, zoom-out, and pan
+	float tranX0 = (float) (this.width - this.width * this.scaleFactor) / 2f;
+	float tranY0 = (float) (this.height - this.height * this.scaleFactor) / 2f;
 	translate(tranX0, tranY0);
 	scale((float) this.scaleFactor);
-	translate(shiftX, shiftY);
+	translate(this.shiftX, this.shiftY);
 
 	// draw shapefiles
-	for (int i = 0; i < polygons.size(); i++) {
+	for (int i = 0; i < this.polygons.size(); i++) {
 	    this.polygons.get(i).project(this);
 	}
-	for (int i = 0; i < lines.size(); i++) {
+	for (int i = 0; i < this.lines.size(); i++) {
 	    stroke(0, 0, 255);
 	    this.lines.get(i).project(this);
 	    noStroke();
 	}
-	for (int i = 0; i < points.size(); i++) {
-
+	for (int i = 0; i < this.points.size(); i++) {
+	    // point shapefile is not supported now
 	}
 	
 	// draw flowing dots for each flow
 	for (int i = 0; i < this.flowCount; i++) {
-	    for (int j = 0; j < flowDotNum[i]; j++) {
-		float x = x0[i] + flowIntervalX[i] * j + (x1[i] - x0[i]) * this.flowSpeed * 0.001f * offsetCount[i][j];
-		float y = y0[i] + flowIntervalY[i] * j + (y1[i] - y0[i]) * this.flowSpeed * 0.001f * offsetCount[i][j];
+	    for (int j = 0; j < this.flowDotNum[i]; j++) {
+		float x = this.x0[i] + this.flowIntervalX[i] * j + (this.x1[i] - this.x0[i]) * this.flowSpeed * 0.001f * this.offsetCount[i][j];
+		float y = this.y0[i] + this.flowIntervalY[i] * j + (this.y1[i] - this.y0[i]) * this.flowSpeed * 0.001f * this.offsetCount[i][j];
 		
 		// check if a moving point has passed the ending point of a flow
-		if (dotReachesEnd(x0[i], x1[i], x)) {
-		    x = x0[i];
-		    y = y0[i];
+		if (dotReachesEnd(this.x0[i], this.x1[i], x)) {
+		    x = this.x0[i];
+		    y = this.y0[i];
 			        
-		    offsetCount[i][j] = 0;
-		    flowIntervalX[i] = 0;
-		    flowIntervalY[i] = 0;
+		    this.offsetCount[i][j] = 0;
+		    this.flowIntervalX[i] = 0;
+		    this.flowIntervalY[i] = 0;
 		} else {
-		    offsetCount[i][j] += 1;
+		    this.offsetCount[i][j] += 1;
 		}
 
 		noStroke();
@@ -222,55 +236,67 @@ public class STEAM extends PApplet {
     }
     
     public void mouseWheel(int delta) {
-	scaleFactor += delta * mouseWheelMultiple;
-	if (scaleFactor <= minScaleFactor) {
-	    scaleFactor = minScaleFactor;
+	this.scaleFactor += delta * this.mouseWheelMultiple;
+	if (this.scaleFactor <= this.minScaleFactor) {
+	    this.scaleFactor = this.minScaleFactor;
 	}
     }
     
     public void mousePressed() {
-	if (!mousePressed) {
-	    mousePressed = true;
+	if (!this.mousePressed) {
+	    this.mousePressed = true;
 	}
 	
-	diffX = mouseX - shiftX;
-	diffY = mouseY - shiftY;
+	this.diffX = this.mouseX - this.shiftX;
+	this.diffY = this.mouseY - this.shiftY;
     }
 
     public void mouseDragged() {
-	if (mousePressed) {
-	    shiftX = mouseX - diffX;
-	    shiftY = mouseY - diffY;
+	if (this.mousePressed) {
+	    this.shiftX = this.mouseX - this.diffX;
+	    this.shiftY = this.mouseY - this.diffY;
 	}
     }
     
     public void mouseReleased() {
-	mousePressed = false;
+	this.mousePressed = false;
     }
     
     public void keyPressed() {
 	if (key == 'z') {
 	    // z key is pressed
-	    scaleFactor = scaleFactor + keyMultiple;
+	    this.scaleFactor = this.scaleFactor + this.keyMultiple;
 	} else if (key == 'x') {
 	    // x key is pressed
-	    scaleFactor = scaleFactor - keyMultiple;
+	    this.scaleFactor = this.scaleFactor - this.keyMultiple;
+	} else if (key == 'p') {
+	    // p key is pressed
+	    if (this.curFlowId != 0) {
+		readFlow(this.flowFilePathsMap.get(--this.curFlowId));		
+	    }
+	} else if (key == 'n') {
+	    // n key is pressed
+	    if (this.curFlowId != this.flowFilePathsMap.size() - 1) {
+		readFlow(this.flowFilePathsMap.get(++this.curFlowId));	
+	    }
 	} else if (keyCode == 37) {
 	    // left key is pressed
-	    shiftX += 10;
+	    this.shiftX += 10;
 	} else if (keyCode == 38) {
 	    // up key is pressed
-	    shiftY += 10;
+	    this.shiftY += 10;
 	} else if (keyCode == 39) {
 	    // right key is pressed
-	    shiftX += -10;
+	    this.shiftX += -10;
 	} else if (keyCode == 40) {
 	    // down key is pressed
-	    shiftY += -10;
+	    this.shiftY += -10;
 	}
     }
     
     public void readFlow(String flowPath) {
+	this.container.setTitle(flowPath);
+	
 	String[] flowText = loadStrings(flowPath);
 	this.flowCount = flowText.length;
 
@@ -283,7 +309,7 @@ public class STEAM extends PApplet {
 	this.flowIntervalX = new float[this.flowCount];
 	this.flowIntervalY = new float[this.flowCount];
 	
-	offsetCount = new int[this.flowCount][this.maxFlowDotNum];
+	this.offsetCount = new int[this.flowCount][this.maxFlowDotNum];
 
 	for (int i = 0; i < flowText.length; i++) {
 	    String[] flowData = flowText[i].split(",");
@@ -310,7 +336,7 @@ public class STEAM extends PApplet {
     public int getFlowDotNum(int flowVol) {
 	int flowDotNum = this.maxFlowDotNum;
 	
-	for (Map.Entry<Integer, Integer> entry : flowClasses.entrySet()) {
+	for (Map.Entry<Integer, Integer> entry : this.flowClasses.entrySet()) {
 	    if (flowVol < entry.getKey()) {
 		flowDotNum = entry.getValue();
 		

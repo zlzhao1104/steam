@@ -10,7 +10,8 @@ public class STEAMParams implements Serializable {
     private String height;
 
     private String shpDir;
-    private String flowPath;
+    private String flowDir;
+    private String flowFilePaths;
     
     private String minLat;
     private String maxLat;
@@ -51,12 +52,20 @@ public class STEAMParams implements Serializable {
         this.shpDir = shpDir;
     }
 
-    public String getFlowPath() {
-        return flowPath;
+    public String getFlowDir() {
+        return flowDir;
     }
 
-    public void setFlowPath(String flowPath) {
-        this.flowPath = flowPath;
+    public void setFlowDir(String flowDir) {
+        this.flowDir = flowDir;
+    }
+
+    public String getFlowFilePaths() {
+        return flowFilePaths;
+    }
+
+    public void setFlowFilePaths(String flowFilePaths) {
+        this.flowFilePaths = flowFilePaths;
     }
 
     public String getMinLat() {

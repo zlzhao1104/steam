@@ -13,6 +13,7 @@ public class VizForm extends JFrame {
 
     private static final long serialVersionUID = 1L;
 
+    private PApplet sketch;
     private STEAMParams params;
 
     public VizForm(STEAMParams params) {
@@ -22,13 +23,19 @@ public class VizForm extends JFrame {
     }
 
     private void initialize() {
+	this.addWindowListener(new java.awt.event.WindowAdapter() {
+	    public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+		sketch.dispose();
+	    }
+	});
+	
 	this.setResizable(false);
 	this.setLayout(new BorderLayout());
 	
 	int width = Integer.valueOf(params.getWidth());
 	int height = Integer.valueOf(params.getHeight());
 	
-	PApplet sketch = new STEAM(params);
+	sketch = new STEAM(this, params);
 	sketch.resize(width, height);
 	sketch.setPreferredSize(new Dimension(width, height));
 	sketch.setMinimumSize(new Dimension(width, height));
