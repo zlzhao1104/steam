@@ -431,7 +431,9 @@ public class MainForm extends JFrame {
 	txtFlowDiameter.setText("");
 	txtFlowColorRGB.setText("");
 	txtFlowClasses.setText("");
-	lstFlowFiles.removeAll();
+	
+	DefaultListModel<String> lm = (DefaultListModel<String>) lstFlowFiles.getModel();
+	lm.removeAllElements();
     }
     
     private STEAMParams paramsToObj() {
