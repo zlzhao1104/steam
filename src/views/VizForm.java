@@ -28,7 +28,8 @@ public class VizForm extends JFrame {
 		sketch.dispose();
 	    }
 	});
-	
+
+	this.setLocationRelativeTo(null);
 	this.setResizable(false);
 	this.setLayout(new BorderLayout());
 	
