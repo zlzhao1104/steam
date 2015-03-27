@@ -199,11 +199,13 @@ public class STEAM extends PApplet {
 	for (int i = 0; i < this.polygons.size(); i++) {
 	    this.polygons.get(i).project(this);
 	}
+	
+	stroke(0, 0, 255);
 	for (int i = 0; i < this.lines.size(); i++) {
-	    stroke(0, 0, 255);
 	    this.lines.get(i).project(this);
-	    noStroke();
 	}
+	noStroke();
+	
 	for (int i = 0; i < this.points.size(); i++) {
 	    // point shapefile is not supported now
 	}
@@ -211,6 +213,7 @@ public class STEAM extends PApplet {
 	// draw flowing dots for each flow
 	for (int i = 0; i < this.flowCount; i++) {
 	    for (int j = 0; j < this.flowDotNum[i]; j++) {
+		// calculate flow location
 		float x = this.x0[i] + this.flowIntervalX[i] * j + (this.x1[i] - this.x0[i]) * this.flowSpeed * 0.001f * this.offsetCount[i][j];
 		float y = this.y0[i] + this.flowIntervalY[i] * j + (this.y1[i] - this.y0[i]) * this.flowSpeed * 0.001f * this.offsetCount[i][j];
 		

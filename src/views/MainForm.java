@@ -62,6 +62,7 @@ public class MainForm extends JFrame {
     private JList<String> lstFlowFiles;
     
     private String projFilePath;
+    private File projDir;
 
     public static void main(String[] args) {
 	EventQueue.invokeLater(new Runnable() {
@@ -116,9 +117,14 @@ public class MainForm extends JFrame {
 	    @Override
 	    public void actionPerformed(ActionEvent e) {
 		JFileChooser chooser = new JFileChooser();
+		if (projDir != null) {
+		    chooser.setCurrentDirectory(projDir);
+		}
 		int result = chooser.showOpenDialog(null);
 		if (result == JFileChooser.APPROVE_OPTION) {
 		    projFilePath = chooser.getSelectedFile().toString();
+		    File projFile = new File(projFilePath);
+		    projDir = projFile.getAbsoluteFile().getParentFile();
 		    
 		    ObjectInputStream ois;
 		    try {
@@ -179,12 +185,17 @@ public class MainForm extends JFrame {
 	    @Override
 	    public void actionPerformed(ActionEvent e) {
 		JFileChooser chooser = new JFileChooser();
+		if (projDir != null) {
+		    chooser.setCurrentDirectory(projDir);
+		}
 		int result = chooser.showSaveDialog(null);
 		if (result == JFileChooser.APPROVE_OPTION) {
 		    projFilePath = chooser.getSelectedFile().toString();
 		    if (!projFilePath.endsWith(".stm")) {
 			projFilePath += ".stm";
 		    }
+		    File projFile = new File(projFilePath);
+		    projDir = projFile.getAbsoluteFile().getParentFile();
 		    
 		    STEAMParams params = paramsToObj();
 			
@@ -212,22 +223,6 @@ public class MainForm extends JFrame {
 		System.exit(0);
 	    }
 	});
-	jMenu.add(jMenuItem);
-
-	jMenu = new JMenu("Help");
-	jMenuBar.add(jMenu);
-
-	jMenuItem = new JMenuItem("Getting Started");
-	jMenu.add(jMenuItem);
-
-	jMenu.addSeparator();
-
-	jMenuItem = new JMenuItem("Release Notes");
-	jMenu.add(jMenuItem);
-
-	jMenu.addSeparator();
-	
-	jMenuItem = new JMenuItem("About");
 	jMenu.add(jMenuItem);
 
 	return jMenuBar;
@@ -285,9 +280,7 @@ public class MainForm extends JFrame {
 	jBasicControlPane.add(lblHeight);
 
 	txtHeight = new JTextField();
-	jBasicControlPane.add(txtHeight, "width :60:, wrap");
-
-	jBasicControlPane.add(new JSeparator(JSeparator.HORIZONTAL), "growx, wrap");
+	jBasicControlPane.add(txtHeight, "width :60:, wrap 30px");
 	
 	JLabel lblDataSelection = new JLabel("Data Selection");
 	jBasicControlPane.add(lblDataSelection, "wrap");
@@ -303,6 +296,9 @@ public class MainForm extends JFrame {
 	    @Override
 	    public void actionPerformed(ActionEvent e) {
 		JFileChooser chooser = new JFileChooser();
+		if (projDir != null) {
+		    chooser.setCurrentDirectory(projDir);
+		}
 		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
 		    txtShpDir.setText(chooser.getSelectedFile().toString());
@@ -322,6 +318,9 @@ public class MainForm extends JFrame {
 	    @Override
 	    public void actionPerformed(ActionEvent e) {
 		JFileChooser chooser = new JFileChooser();
+		if (projDir != null) {
+		    chooser.setCurrentDirectory(projDir);
+		}
 		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
 		    txtFlowDir.setText(chooser.getSelectedFile().toString());
@@ -347,7 +346,7 @@ public class MainForm extends JFrame {
 	
 	JScrollPane jFlowFilesScrollPane = new JScrollPane();
 	jFlowFilesScrollPane.setViewportView(lstFlowFiles);
-	jBasicControlPane.add(jFlowFilesScrollPane, "growx, growy");
+	jBasicControlPane.add(jFlowFilesScrollPane, "growx, growy, pushy");
 
 	return jBasicControlPane;
     }
@@ -380,9 +379,7 @@ public class MainForm extends JFrame {
 	jVizControlPane.add(lblMaxLng);
 
 	txtMaxLng = new JTextField();
-	jVizControlPane.add(txtMaxLng, "width :100:, wrap");
-	
-	jVizControlPane.add(new JSeparator(JSeparator.HORIZONTAL), "growx, wrap");
+	jVizControlPane.add(txtMaxLng, "width :100:, wrap 30px");
 	
 	JLabel lblFlowPointProp = new JLabel("Flow Point Properties");
 	jVizControlPane.add(lblFlowPointProp, "wrap");
@@ -403,9 +400,7 @@ public class MainForm extends JFrame {
 	jVizControlPane.add(lblFlowRGB);
 	
 	txtFlowColorRGB = new JTextField();
-	jVizControlPane.add(txtFlowColorRGB, "width :100:, wrap");
-	
-	jVizControlPane.add(new JSeparator(JSeparator.HORIZONTAL), "growx, wrap");
+	jVizControlPane.add(txtFlowColorRGB, "width :100:, wrap 30px");
 	
 	JLabel lblFlowClasses = new JLabel("Flow Classes:");
 	jVizControlPane.add(lblFlowClasses, "left sg1, split");
@@ -418,6 +413,7 @@ public class MainForm extends JFrame {
     
     private void createNewProject() {
 	projFilePath = "";
+	projDir = null;
 	
 	txtWidth.setText("");
 	txtHeight.setText("");
