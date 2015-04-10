@@ -1,4 +1,4 @@
-See User Guide.pdf for detailed instruction.
+See User Guide.pdf for detailed instructions.
 
 A demo video is uploaded to: https://vimeo.com/107979465.
 
